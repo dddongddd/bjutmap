@@ -8,11 +8,19 @@
 map::map(QWidget *parent) : QWidget(parent), currentPos(-1, -1), targetPos(-1, -1), resizing(false) {
     // 加载地图图像
     mapPixmap = QPixmap("E:/qtdocument/bjutmap.jpg");  // 请替换为实际的地图路径
-    setMouseTracking(true); // 开启鼠标追踪
+    setMouseTracking(true);  // 开启鼠标追踪
 }
 
 // 捕捉鼠标点击事件
 void map::mousePressEvent(QMouseEvent *event) {
+    // 处理右键点击，清除所有标记和路
+    if (event->button() == Qt::RightButton) {
+        currentPos = QPoint(-1, -1);  // 重置起始点
+        targetPos = QPoint(-1, -1);   // 重置目标点
+        update();  // 重新绘制，清除所有标记和路径
+        return;
+    }
+
     // 如果鼠标点击在边缘，开始调整窗口大小
     if (event->pos().x() <= BORDER_WIDTH || event->pos().x() >= width() - BORDER_WIDTH ||
         event->pos().y() <= BORDER_WIDTH || event->pos().y() >= height() - BORDER_WIDTH) {
@@ -21,13 +29,15 @@ void map::mousePressEvent(QMouseEvent *event) {
         return;
     }
 
-    // 如果不在边缘，正常处理地图点击
-    if (currentPos == QPoint(-1, -1)) {
-        currentPos = event->pos();  // 第一次点击设置为当前位置
-    } else {
-        targetPos = event->pos();   // 第二次点击设置为目标位置
+    // 左键点击处理：如果不在边缘，正常处理地图点击
+    if (event->button() == Qt::LeftButton) {
+        if (currentPos == QPoint(-1, -1)) {
+            currentPos = event->pos();  // 第一次点击设置为当前位置（红点）
+        } else {
+            targetPos = event->pos();   // 第二次点击设置为目标位置（绿点）
+        }
+        update();  // 每次点击后重新绘制
     }
-    update();  // 每次点击后重新绘制
 }
 
 // 鼠标移动事件，用于调整窗口大小
